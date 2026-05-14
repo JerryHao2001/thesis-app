@@ -1,73 +1,6 @@
 import { useState, useMemo } from 'react'
 import GraphViewer, { ENTITY_COLORS, DOC_BORDER_COLORS, DOC_SHAPES, MERGED_NODE_BORDER } from './GraphViewer.jsx'
-
-// ─── Graph helpers ─────────────────────────────────────────────────────────────
-
-function mergeGraphs(graph1, graph2) {
-  if (!graph1 && !graph2) return { nodes: [], edges: [] }
-  return {
-    nodes: [
-      ...(graph1?.nodes ?? []),
-      ...(graph2?.nodes ?? []),
-    ],
-    edges: [
-      ...(graph1?.edges ?? []).map(e => ({ ...e, id: `d1_${e.id}` })),
-      ...(graph2?.edges ?? []).map(e => ({ ...e, id: `d2_${e.id}` })),
-    ],
-  }
-}
-
-/**
- * Collapse merged pairs into single nodes.
- * - surviveMap: doc2_node_id → doc1_node_id
- * - Merged doc2 nodes are removed; their edges are redirected to doc1 node.
- * - Surviving doc1 node gets merged:true and a combined label.
- */
-function applyMerges(baseGraph, mergedLinks) {
-  if (!mergedLinks.length) return baseGraph
-
-  // Build survive map: doc2 node id → doc1 node id
-  const surviveMap = new Map()
-  // Also track labels for combined display
-  const labelMap = new Map() // doc1_id → doc2 label
-  for (const link of mergedLinks) {
-    surviveMap.set(link.mention_2_id, link.mention_1_id)
-    labelMap.set(link.mention_1_id, link.mention_2_text)
-  }
-
-  const removedIds = new Set(surviveMap.keys())
-
-  // Resolve a node id through the survive map (handles chains)
-  function resolve(id) {
-    let cur = id
-    while (surviveMap.has(cur)) cur = surviveMap.get(cur)
-    return cur
-  }
-
-  const nodes = baseGraph.nodes
-    .filter(n => !removedIds.has(n.id))
-    .map(n => {
-      if (!labelMap.has(n.id)) return n
-      const doc2Label = labelMap.get(n.id)
-      const combinedLabel = n.label === doc2Label ? n.label : `${n.label} / ${doc2Label}`
-      return { ...n, label: combinedLabel, merged: true }
-    })
-
-  const seenEdges = new Set()
-  const edges = []
-  for (const e of baseGraph.edges) {
-    const src = resolve(e.source)
-    const tgt = resolve(e.target)
-    if (src === tgt) continue  // drop self-loops
-    const key = `${e.id}|${src}|${tgt}`
-    if (seenEdges.has(key)) continue
-    seenEdges.add(key)
-    edges.push({ ...e, source: src, target: tgt })
-  }
-
-  return { nodes, edges }
-}
-
+import { mergeGraphs, applyMerges } from '../graphUtils.js'
 
 // ─── Sub-components ────────────────────────────────────────────────────────────
 
@@ -197,9 +130,11 @@ function Legend() {
 
 // ─── Main component ────────────────────────────────────────────────────────────
 
-export default function ResolvedStage({ doc1, doc2, resolved }) {
+export default function ResolvedStage({ doc1, doc2, resolved, onFinalize }) {
   const [activeLinks, setActiveLinks] = useState(() => resolved?.cross_doc_links ?? [])
   const [threshold, setThreshold] = useState(100)
+  const [finalizing, setFinalizing] = useState(false)
+  const [finalizeError, setFinalizeError] = useState('')
 
   function handleUnlink(idx) {
     setActiveLinks(prev => prev.filter((_, i) => i !== idx))
@@ -221,6 +156,18 @@ export default function ResolvedStage({ doc1, doc2, resolved }) {
   const mergeCount = mergedLinks.length
   const totalCount = activeLinks.length
 
+  async function handleFinalize() {
+    setFinalizeError('')
+    setFinalizing(true)
+    try {
+      await onFinalize(activeLinks, threshold, displayGraph)
+    } catch (e) {
+      setFinalizeError(`Finalize failed: ${e.message}`)
+    } finally {
+      setFinalizing(false)
+    }
+  }
+
   return (
     <div className="resolved-section">
       <hr className="divider" />
@@ -235,8 +182,6 @@ export default function ResolvedStage({ doc1, doc2, resolved }) {
           </span>
         </div>
         <div className="card-body">
-
-          {/* Threshold slider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
             <span style={{ fontSize: 12, color: 'var(--muted)', whiteSpace: 'nowrap' }}>All merged</span>
             <input
@@ -249,13 +194,7 @@ export default function ResolvedStage({ doc1, doc2, resolved }) {
               Threshold: {threshold}%
             </span>
           </div>
-
-          <GraphViewer
-            graph={displayGraph}
-            crossDocLinks={dashedLinks}
-            height={480}
-            showDocBorders
-          />
+          <GraphViewer graph={displayGraph} crossDocLinks={dashedLinks} height={480} showDocBorders />
           <div style={{ marginTop: 14 }}>
             <Legend />
           </div>
@@ -271,11 +210,26 @@ export default function ResolvedStage({ doc1, doc2, resolved }) {
       </div>
 
       {/* ── Coreference links table ── */}
-      <div className="card">
+      <div className="card" style={{ marginBottom: 20 }}>
         <div className="card-header">Coreference Links</div>
         <div className="card-body">
           <LinkTable links={activeLinks} threshold={threshold} onUnlink={handleUnlink} />
         </div>
+      </div>
+
+      {/* ── Finalize ── */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 12 }}>
+        {finalizeError && <span style={{ color: 'var(--danger)', fontSize: 13 }}>{finalizeError}</span>}
+        <button
+          className="btn-primary"
+          onClick={handleFinalize}
+          disabled={finalizing}
+          style={{ fontSize: 14, padding: '10px 24px' }}
+        >
+          {finalizing
+            ? <><span className="spinner" />Building Knowledge Base…</>
+            : '📚 Finalize & Add Article →'}
+        </button>
       </div>
     </div>
   )

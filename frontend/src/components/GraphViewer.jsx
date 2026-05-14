@@ -67,14 +67,17 @@ function buildVisData(graph, crossDocLinks = [], showDocBorders = false) {
     (graph?.nodes ?? []).map(n => {
       const typeColor = ENTITY_COLORS[n.entity_type] ?? ENTITY_COLORS.generic
       const isMerged = !!n.merged
+      // is_new_article: set on new-article nodes regardless of their numeric doc_id,
+      // so styling stays correct even when doc_id > 1 (round 3+).
+      const isNew = !!n.is_new_article
       const borderColor = isMerged
         ? MERGED_NODE_BORDER
         : showDocBorders
-          ? (DOC_BORDER_COLORS[n.doc_id] ?? typeColor.border)
+          ? (isNew ? DOC_BORDER_COLORS[1] : (DOC_BORDER_COLORS[n.doc_id] ?? typeColor.border))
           : typeColor.border
       const borderWidth = isMerged ? 4 : showDocBorders ? 3 : 1.5
-      const shape = isMerged ? 'ellipse' : (DOC_SHAPES[n.doc_id] ?? 'ellipse')
-      const docLabel = isMerged ? 'Merged (Doc 1 + Doc 2)' : `Doc ${n.doc_id + 1}`
+      const shape = isMerged ? 'ellipse' : isNew ? DOC_SHAPES[1] : (DOC_SHAPES[n.doc_id] ?? 'ellipse')
+      const docLabel = isMerged ? 'Merged (KB + New)' : isNew ? 'New article' : `Doc ${n.doc_id + 1}`
       return {
         id: n.id,
         label: n.label,

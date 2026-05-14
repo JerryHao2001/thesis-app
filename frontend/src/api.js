@@ -32,6 +32,14 @@ export async function apiResolve(doc1Signatures, doc2Signatures) {
   })
 }
 
+export async function apiUnifySigs(doc1Sigs, doc2Sigs, mergedPairs) {
+  return post('/build_unified_sigs', {
+    doc1_signatures: doc1Sigs,
+    doc2_signatures: doc2Sigs,
+    merged_pairs: mergedPairs,
+  })
+}
+
 export async function apiHealth() {
   const res = await fetch(`${BASE}/health`)
   return res.json()
