@@ -1,0 +1,215 @@
+/* ── Reset & base ──────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #f7f8fa;
+  --surface:  #ffffff;
+  --border:   #e0e3e8;
+  --text:     #1a1d23;
+  --muted:    #6b7280;
+  --accent:   #3b6ef6;
+  --accent-h: #2a56d9;
+  --danger:   #e53e3e;
+  --success:  #38a169;
+  --warn:     #d97706;
+  --radius:   8px;
+  --shadow:   0 1px 4px rgba(0,0,0,.08);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg);
+}
+
+body { min-height: 100vh; }
+
+/* ── Layout ────────────────────────────────────────────── */
+.app-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.app-header h1 { font-size: 17px; font-weight: 600; }
+.app-header .subtitle { font-size: 12px; color: var(--muted); }
+
+.app-main { padding: 24px 28px; max-width: 1600px; margin: 0 auto; }
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* ── Cards / panels ────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.card-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-body { padding: 16px 18px; }
+
+/* ── Section labels ─────────────────────────────────────── */
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+  margin-top: 14px;
+}
+.section-label:first-child { margin-top: 0; }
+
+/* ── Buttons ────────────────────────────────────────────── */
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 16px;
+  transition: background .15s, opacity .15s;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover:not(:disabled) { background: var(--accent-h); }
+.btn-secondary {
+  background: #eef1f8;
+  color: var(--text);
+}
+.btn-secondary:hover:not(:disabled) { background: #dde3f0; }
+.btn-success {
+  background: var(--success);
+  color: #fff;
+}
+.btn-success:hover:not(:disabled) { filter: brightness(1.08); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+
+/* ── Inputs & textareas ─────────────────────────────────── */
+textarea, input[type="text"] {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  resize: vertical;
+  outline: none;
+  transition: border-color .15s;
+  background: #fafbfc;
+}
+textarea:focus, input:focus { border-color: var(--accent); background: #fff; }
+textarea.monospace { font-family: 'Fira Code', 'Cascadia Code', monospace; font-size: 12px; }
+
+/* ── Tag badges ─────────────────────────────────────────── */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.badge-task     { background: #ffe4e4; color: #b91c1c; }
+.badge-method   { background: #d1faf5; color: #0d7a6a; }
+.badge-metric   { background: #fef9c3; color: #a16207; }
+.badge-material { background: #dbeafe; color: #1d4ed8; }
+.badge-ost      { background: #ede9fe; color: #6d28d9; }
+.badge-generic  { background: #f3f4f6; color: #374151; }
+
+/* ── Status / alerts ────────────────────────────────────── */
+.alert {
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+.alert-error   { background: #fff5f5; color: var(--danger); border: 1px solid #fecaca; }
+.alert-success { background: #f0fdf4; color: var(--success); border: 1px solid #bbf7d0; }
+.alert-info    { background: #eff6ff; color: #1d4ed8;        border: 1px solid #bfdbfe; }
+
+/* ── Loading spinner ────────────────────────────────────── */
+.spinner {
+  display: inline-block;
+  width: 18px; height: 18px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Stage-specific ─────────────────────────────────────── */
+.input-stage { max-width: 960px; margin: 0 auto; }
+.input-stage .card-body { padding: 24px; }
+.input-stage textarea { height: 180px; }
+.input-actions { display: flex; justify-content: center; margin-top: 20px; gap: 12px; }
+
+/* Graph viewer container */
+.graph-container {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fdfdfd;
+}
+
+/* TANL editor */
+.tanl-editor textarea { height: 90px; }
+.tanl-editor .row { display: flex; gap: 10px; align-items: flex-end; }
+.fix-btn-row { display: flex; justify-content: flex-end; margin-top: 10px; gap: 8px; }
+
+/* Review stage */
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.review-header h2 { font-size: 16px; font-weight: 600; }
+
+/* Resolved stage */
+.resolved-section { margin-top: 28px; }
+.resolved-section h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+
+/* Cross-doc links table */
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; padding: 8px 12px; background: #f1f3f7; border-bottom: 1px solid var(--border); font-weight: 600; }
+td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+tr:last-child td { border-bottom: none; }
+.score-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.score-fill {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--accent);
+  min-width: 2px;
+}
+
+/* Divider */
+.divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+/* Legend */
+.legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; }
+.legend-item { display: flex; align-items: center; gap: 5px; }
+.legend-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+
+/* Empty state */
+.empty { text-align: center; color: var(--muted); padding: 40px 0; font-size: 13px; }
